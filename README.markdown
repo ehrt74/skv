@@ -6,8 +6,8 @@ a minimal key value store for bash scripting
 
 ## Usage
 
-    $ skv my-scheme put mykey foobar
-	$ skv my-scheme get mykey
+    $ skv put my-scheme mykey foobar
+	$ skv get my-scheme mykey
 	foobar
 	$ skv scheme-ls
 	my-scheme
