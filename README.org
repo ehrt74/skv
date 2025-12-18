@@ -1,0 +1,19 @@
+* skv
+
+simple key value store.
+
+a minimal key value store for bash scripting
+
+** Usage
+
+#+begin_src bash
+  $ skv my-scheme put mykey foobar
+  $ skv my-scheme get mykey
+  foobar
+  $ skv scheme-ls
+  my-scheme
+
+#+end_src
+
+
+** Installation

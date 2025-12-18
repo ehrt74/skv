@@ -1,0 +1,2 @@
+jsown, ghcr.io/ocicl/jsown@sha256:36a2ec6668cd9d7fb8ccafe01547459f4e51f5a3d8d2d71df0ce342dcf286539, jsown-20240503-744c440/jsown.asd
+jsown-tests, ghcr.io/ocicl/jsown@sha256:36a2ec6668cd9d7fb8ccafe01547459f4e51f5a3d8d2d71df0ce342dcf286539, jsown-20240503-744c440/tests/jsown-tests.asd
