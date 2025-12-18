@@ -4,7 +4,7 @@
 (in-package #:skv)
 
 (defun print-help ()
-  (format t #."ba
+  (format t #."skv
 help                       print this help
 get <scheme> <key>         gets key from scheme
 put <scheme> <key> <value> puts key value in scheme
