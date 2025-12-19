@@ -14,18 +14,20 @@ scheme-ls                  lists all schemes
 scheme-rm scheme           deletes scheme
 "))
 
-(defparameter *base-dir* (merge-pathnames ".cache/skv/" (user-homedir-pathname)))
 
-(ensure-directories-exist *base-dir*)
+(defun get-base-dir ()
+  (let ((base-dir (merge-pathnames ".cache/skv/" (user-homedir-pathname))))
+    (ensure-directories-exist base-dir)
+    base-dir))
 
 (defun list-schemes ()
-  (let ((files (uiop:directory-files *base-dir*)))
+  (let ((files (uiop:directory-files (get-base-dir))))
     (dolist (file files)
       (when (string-equal (pathname-type file) "json")
 	  (format t "~a~%" (pathname-name file))))))
 
 (defun get-db-name (scheme)
-  (merge-pathnames (format nil "~a.json" scheme) *base-dir*))
+  (merge-pathnames (format nil "~a.json" scheme) (get-base-dir)))
 
 (defun get-db (scheme)
   (let ((db-path (get-db-name scheme)))
