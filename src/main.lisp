@@ -14,11 +14,27 @@ scheme-ls                  lists all schemes
 scheme-rm scheme           deletes scheme
 "))
 
+(defun with-file-lock (lock-file fn)
+  (labels ((foo ()
+	     (with-open-file (out lock-file :direction :output
+					    :if-exists nil
+					    :if-does-not-exist :create)
+	       (if (not (null out))
+		   (funcall fn)
+		   (progn
+		     (format uiop:*stderr* "file ~a locked. waiting ..." lock-file)
+		     (sleep 0.1)
+		     (foo))))))
+    (foo)
+    (delete-file lock-file)))
 
 (defun get-base-dir ()
   (let ((base-dir (merge-pathnames ".cache/skv/" (user-homedir-pathname))))
     (ensure-directories-exist base-dir)
     base-dir))
+
+(defun get-lock-file-path (scheme)
+  (merge-pathnames (format nil "~a.lock" scheme) (get-base-dir)))
 
 (defun list-schemes ()
   (let ((files (uiop:directory-files (get-base-dir))))
@@ -44,27 +60,37 @@ scheme-rm scheme           deletes scheme
       (write-sequence (jsown:to-json db) f))))
 
 (defun get-val (scheme key)
-  (let ((db (get-db scheme)))
-    (multiple-value-bind (val exists-p) (jsown:val-safe db key)
-      (if exists-p
-	(format t val)
-	(format *error-output* "not found")))))
+  (with-file-lock (get-lock-file-path scheme)
+    (lambda ()
+      (let ((db (get-db scheme)))
+	(multiple-value-bind (val exists-p) (jsown:val-safe db key)
+	  (if exists-p
+	      (format t val)
+	      (format *error-output* "not found")))))))
 
 (defun set-val (scheme key val)
-  (let* ((db (get-db scheme))
-	 (db-new (jsown:extend-js db (key val))))
-    (save-db scheme db-new)))
+  (with-file-lock (get-lock-file-path scheme)
+    (lambda ()
+      (let* ((db (get-db scheme))
+	     (db-new (jsown:extend-js db (key val))))
+	(save-db scheme db-new)))))
 
 (defun rm-key (scheme key)
-  (let ((db (get-db scheme)))
-    (save-db scheme (jsown:remkey db key))))
+  (with-file-lock (get-lock-file-path scheme)
+    (lambda ()
+      (let ((db (get-db scheme)))
+	(save-db scheme (jsown:remkey db key))))))
 
 (defun list-all (scheme)
-  (jsown:do-json-keys (k v) (get-db scheme)
-    (format t "~a -> ~a~%" k v)))
+  (with-file-lock (get-lock-file-path scheme)
+    (lambda ()
+      (jsown:do-json-keys (k v) (get-db scheme)
+	(format t "~a -> ~a~%" k v)))))
 
 (defun delete-scheme (scheme)
-  (uiop:delete-file-if-exists (get-db-name scheme)))
+  (with-file-lock (get-lock-file-path scheme)
+    (lambda ()
+      (uiop:delete-file-if-exists (get-db-name scheme)))))
 
 (defun perform (args)
   (trivia:match args
